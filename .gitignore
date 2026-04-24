@@ -1,0 +1,25 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Logs & data
+*.log
+backtest_trades.csv
+data/
+*.db
+*.csv
+!tests/*.csv
+
+# OS
+.DS_Store
+Thumbs.db
