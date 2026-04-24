@@ -17,12 +17,12 @@ class LiquidityAgent:
         
         if len(highs) >= 2:
             last_two_highs = highs[-2:]
-            if abs(last_two_highs[0] - last_two_highs[1]) / last_two_highs[0] < self.tolerance:
+            if last_two_highs[0] > 0 and abs(last_two_highs[0] - last_two_highs[1]) / last_two_highs[0] < self.tolerance:
                 eqh = True
                 
         if len(lows) >= 2:
             last_two_lows = lows[-2:]
-            if abs(last_two_lows[0] - last_two_lows[1]) / last_two_lows[0] < self.tolerance:
+            if last_two_lows[0] > 0 and abs(last_two_lows[0] - last_two_lows[1]) / last_two_lows[0] < self.tolerance:
                 eql = True
                 
         return eqh, eql
