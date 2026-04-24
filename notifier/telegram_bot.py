@@ -1,17 +1,39 @@
 import os
 import requests
+import queue
+import threading
+from datetime import datetime
 
 class TelegramNotifier:
     def __init__(self):
         self.token = os.getenv('TELEGRAM_BOT_TOKEN')
         self.chat_id = os.getenv('TELEGRAM_CHAT_ID')
+        self.queue = queue.Queue()
+        self.worker_thread = threading.Thread(target=self._worker, daemon=True)
+        self.worker_thread.start()
+
+    def _worker(self):
+        """Background worker to send alerts without blocking the main loop."""
+        while True:
+            payload = self.queue.get()
+            if payload is None: break
+            
+            url = f"https://api.telegram.org/bot{self.token}/sendMessage"
+            try:
+                response = requests.post(url, json=payload, timeout=10)
+                if response.status_code != 200:
+                    print(f"❌ Failed to send Telegram alert: {response.text}")
+            except Exception as e:
+                print(f"❌ Error sending Telegram alert: {e}")
+            finally:
+                self.queue.task_done()
 
     def send_alert(self, symbol, score, details):
         """
-        Sends a professional formatted alert to Telegram with specific signal icons.
+        Queues a professional formatted alert to Telegram.
         """
         if not self.token or not self.chat_id:
-            print("⚠️ Telegram token or chat ID missing. Alert not sent.")
+            print("⚠️ Telegram token or chat ID missing. Alert not queued.")
             return
 
         chat_ids = [cid.strip() for cid in str(self.chat_id).split(',')]
@@ -54,20 +76,10 @@ class TelegramNotifier:
         message += f"💡 *Advice:* _Verify structure on M5 before entry._\n"
         message += f"⏰ _UTC: {datetime.now().strftime('%H:%M:%S')}_"
 
-        url = f"https://api.telegram.org/bot{self.token}/sendMessage"
-        
         for cid in chat_ids:
             payload = {
                 "chat_id": cid,
                 "text": message,
                 "parse_mode": "Markdown"
             }
-            
-            try:
-                response = requests.post(url, json=payload)
-                if response.status_code != 200:
-                    print(f"❌ Failed to send Telegram alert to {cid}: {response.text}")
-                else:
-                    print(f"✅ Alert sent successfully to {cid}")
-            except Exception as e:
-                print(f"❌ Error sending Telegram alert to {cid}: {e}")
+            self.queue.put(payload)

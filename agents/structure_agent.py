@@ -32,17 +32,25 @@ class StructureAgent:
     def detect_bos(self, df):
         """
         Detects Break of Structure (BOS) or Market Structure Shift (MSS).
-        BOS occurs when price closes beyond the last confirmed swing.
+        BOS occurs when price closes (body) beyond the last confirmed swing.
         """
-        # Simplified BOS logic for initial implementation
-        # Real BOS requires confirmed swings and trend context
-        last_high = df[df['swing_high']]['high'].iloc[-1] if any(df['swing_high']) else None
-        last_low = df[df['swing_low']]['low'].iloc[-1] if any(df['swing_low']) else None
+        # Get confirmed swings
+        highs = df[df['swing_high']]['high']
+        lows = df[df['swing_low']]['low']
+        
+        if not any(highs) or not any(lows):
+            return False, False
+            
+        last_high = highs.iloc[-1]
+        last_low = lows.iloc[-1]
         
         current_close = df['close'].iloc[-1]
         
-        bos_bullish = last_high and current_close > last_high
-        bos_bearish = last_low and current_close < last_low
+        # Bullish BOS: Body close ABOVE last swing high
+        bos_bullish = current_close > last_high
+        
+        # Bearish BOS: Body close BELOW last swing low
+        bos_bearish = current_close < last_low
         
         return bos_bullish, bos_bearish
 
