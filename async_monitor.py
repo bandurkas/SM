@@ -52,12 +52,12 @@ class MultiSymbolMonitor:
             return tf, None
 
     def analyze_trend(self, df):
-        if df is None or len(df) < 10: return "Neutral"
+        if df is None or len(df) < 10: return "Нейтральный"
         last_close = df['close'].iloc[-1]
         ema_20 = df['close'].rolling(20).mean().iloc[-1]
-        if last_close > ema_20: return "Bullish"
-        if last_close < ema_20: return "Bearish"
-        return "Neutral"
+        if last_close > ema_20: return "Бычий"
+        if last_close < ema_20: return "Медвежий"
+        return "Нейтральный"
 
     async def monitor_symbol(self, symbol):
         """Individual task loop for a single symbol."""
@@ -84,7 +84,7 @@ class MultiSymbolMonitor:
                     daily_trend = self.analyze_trend(df_1d)
                     if htf_trend == daily_trend and htf_trend != "Neutral":
                         total_score += 2
-                        all_details.append(f"HTF Alignment: {htf_trend}")
+                        all_details.append(f"🌐 Согласование HTF: {htf_trend}")
 
                 # 3. Agent Analysis
                 df_exec = mtf_data['15m']

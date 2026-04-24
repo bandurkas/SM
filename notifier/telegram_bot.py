@@ -30,7 +30,7 @@ class TelegramNotifier:
 
     def send_alert(self, symbol, score, details):
         """
-        Queues a professional formatted alert to Telegram.
+        Отправляет профессионально оформленное уведомление в Telegram на русском языке.
         """
         if not self.token or not self.chat_id:
             print("⚠️ Telegram token or chat ID missing. Alert not queued.")
@@ -38,42 +38,49 @@ class TelegramNotifier:
 
         chat_ids = [cid.strip() for cid in str(self.chat_id).split(',')]
 
-        # Dynamic header based on score
+        # Динамический заголовок на основе счета
         if score >= 7:
-            header = "🚨 *HIGH PROBABILITY SETUP*"
-            status = "🔥 _Extremely High Probability_"
+            header = "🚨 *СЕТАП ВЫСОКОЙ ВЕРОЯТНОСТИ*"
+            status = "🔥 _Экстремально высокая вероятность_"
         elif score >= 5:
-            header = "🛡️ *SMART MONEY ALERT*"
-            status = "📈 _Good Probability_"
+            header = "🛡️ *SMART MONEY СИГНАЛ*"
+            status = "📈 _Хорошая вероятность_"
         else:
-            header = "📡 *SIGNAL DETECTED*"
-            status = "⚖️ _Moderate Probability_"
+            header = "📡 *ОБНАРУЖЕН СИГНАЛ*"
+            status = "⚖️ _Средняя вероятность_"
 
         message = f"{header}\n\n"
-        message += f"📊 *Instrument:* `{symbol}`\n"
-        message += f"🔥 *Coincidence Score:* `{score}/10`\n"
-        message += f"📝 *Status:* {status}\n"
+        message += f"📊 *Инструмент:* `{symbol}`\n"
+        message += f"🔥 *Счет совпадений:* `{score}/10`\n"
+        message += f"📝 *Статус:* {status}\n"
         message += f"━━━━━━━━━━━━━━━━━━━━\n\n"
         
-        message += "*✅ DETECTED FACTORS:*\n"
+        message += "*✅ ОБНАРУЖЕННЫЕ ФАКТОРЫ:*\n"
         for detail in details:
-            if "HTF" in detail or "Daily" in detail:
-                message += f"🌐 _{detail}_\n"
-            elif "BOS" in detail or "MSS" in detail:
-                message += f"🔹 {detail}\n"
-            elif "Liquidity" in detail or "Sweep" in detail:
-                message += f"💧 {detail}\n"
-            elif "FVG" in detail or "Imbalance" in detail:
-                message += f"⚡ {detail}\n"
-            elif "Order Block" in detail or "Breaker" in detail:
-                message += f"📦 {detail}\n"
-            elif "Killzone" in detail:
-                message += f"⏰ {detail}\n"
-            else:
-                message += f"✅ {detail}\n"
+            # Перевод ключевых факторов
+            d = detail.replace("HTF Alignment", "🌐 Согласование HTF") \
+                      .replace("Bullish", "Бычий") \
+                      .replace("Bearish", "Медвежий") \
+                      .replace("Trend", "Тренд") \
+                      .replace("BOS", "🔹 BOS (Слом структуры)") \
+                      .replace("MSS", "🔹 MSS (Смена характера)") \
+                      .replace("confirmed", "подтвержден") \
+                      .replace("Body Close", "Закрытие телом") \
+                      .replace("Liquidity Sweep", "💧 Снятие ликвидности (Sweep)") \
+                      .replace("detected", "обнаружено") \
+                      .replace("below Swing Low", "ниже Swing Low") \
+                      .replace("above Swing High", "выше Swing High") \
+                      .replace("FVG", "⚡ FVG (Имбаланс)") \
+                      .replace("Imbalance", "⚡ Имбаланс") \
+                      .replace("Order Block", "📦 Order Block") \
+                      .replace("Breaker", "📦 Breaker Block") \
+                      .replace("Killzone", "⏰ Killzone") \
+                      .replace("Active", "Активна")
+            
+            message += f"{d}\n"
             
         message += f"\n━━━━━━━━━━━━━━━━━━━━\n"
-        message += f"💡 *Advice:* _Verify structure on M5 before entry._\n"
+        message += f"💡 *Совет:* _Проверьте структуру на M5 перед входом._\n"
         message += f"⏰ _UTC: {datetime.now().strftime('%H:%M:%S')}_"
 
         for cid in chat_ids:

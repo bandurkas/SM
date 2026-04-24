@@ -60,12 +60,12 @@ class LiquidityAgent:
         score = 0
         details = []
         
-        if sweep_bullish:
-            score += 1
-            details.append("SSL Sweep — Снятие ликвидности снизу (+1 балл)")
         if sweep_bearish:
             score += 1
             details.append("BSL Sweep — Снятие ликвидности сверху (+1 балл)")
+        if sweep_bullish:
+            score += 1
+            details.append("SSL Sweep — Снятие ликвидности снизу (+1 балл)")
         if eqh:
             details.append("Equal Highs (EQH) — Магнит ликвидности сверху")
         if eql:
