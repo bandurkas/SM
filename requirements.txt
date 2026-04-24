@@ -1,6 +1,7 @@
-ccxt>=4.3.0
-pandas>=2.0.0
-numpy>=1.24.0
-pandas-ta>=0.3.14b
-python-dotenv>=1.0.0
-pytest>=8.0.0
+ccxt
+pandas
+python-telegram-bot
+python-dotenv
+requests
+numpy
+pytz

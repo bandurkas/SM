@@ -1,25 +1,8 @@
-# Secrets
-.env
-
-# Python
+*.mp4
+*.pdf
+SM_materials/
 __pycache__/
-*.py[cod]
-*.pyo
-*.egg-info/
-dist/
-build/
-.venv/
 venv/
-env/
-
-# Logs & data
+.env
+backtest_results.csv
 *.log
-backtest_trades.csv
-data/
-*.db
-*.csv
-!tests/*.csv
-
-# OS
-.DS_Store
-Thumbs.db
