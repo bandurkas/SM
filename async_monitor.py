@@ -8,6 +8,7 @@ from agents.structure_agent import StructureAgent
 from agents.liquidity_agent import LiquidityAgent
 from agents.zone_agent import ZoneAgent
 from agents.timing_agent import TimingAgent
+from agents.execution_agent import ExecutionAgent
 from notifier.telegram_bot import TelegramNotifier
 
 load_dotenv()
@@ -15,7 +16,7 @@ load_dotenv()
 # Configuration
 SYMBOLS = [s.strip() for s in os.getenv('SYMBOLS', 'ETH/USDT').split(',')]
 TIMEFRAMES = ['15m', '30m', '1h', '4h', '1d']
-SIGNAL_THRESHOLD = 5
+SIGNAL_THRESHOLD = 6
 POLLING_INTERVAL = int(os.getenv('POLLING_INTERVAL', 60))
 
 class MultiSymbolMonitor:
@@ -29,6 +30,7 @@ class MultiSymbolMonitor:
             'timing': TimingAgent()
         }
         self.notifier = TelegramNotifier()
+        self.executor = ExecutionAgent()
         self.last_alerts = {}
         self.running = False
 
@@ -105,6 +107,32 @@ class MultiSymbolMonitor:
                         print(f"🔥 {symbol} SIGNAL DETECTED! Score: {total_score}")
                         self.notifier.send_alert(symbol, total_score, all_details)
                         self.last_alerts[key] = now
+                        
+                        # 5. Execute Auto-Trade
+                        if self.executor.enabled:
+                            current_price = df_exec['close'].iloc[-1]
+                            is_long = any("Bullish" in d or "Бычий" in d for d in all_details)
+                            # Get nearest swing for SL calculation
+                            swing_price = self.agents['structure'].get_nearest_swing(df_exec, is_long)
+                            trade_result = self.executor.execute_trade(
+                                symbol, is_long, current_price, swing_price=swing_price
+                            )
+
+                            if trade_result:
+                                dry = trade_result.get('dry_run', False)
+                                mode_label = '🧪 СИМУЛЯЦИЯ' if dry else '🧾 ОРДЕР ИСПОЛНЕН'
+                                msg  = f"{mode_label}\n"
+                                msg += f"━━━━━━━━━━━━━━━━━━━\n"
+                                msg += f"📈 **Тип:** `{trade_result['side']}`\n"
+                                msg += f"📊 **Инструмент:** `{trade_result['symbol']}`\n"
+                                msg += f"💵 **Цена входа:** `{trade_result['price']}`\n"
+                                msg += f"🛑 **Stop-Loss:** `{trade_result['sl']}` _(за Swing + буфер 0.2%)_\n"
+                                msg += f"🎯 **Take-Profit:** `{trade_result['tp']}` _(+3%)_\n"
+                                msg += f"🔄 **Трейлинг-стоп:** активен после TP\n"
+                                if not dry:
+                                    msg += f"💰 **Сумма:** `${trade_result['cost']:.2f}`\n"
+                                    msg += f"✅ **Статус:** `{trade_result['status']}`\n"
+                                self.notifier.send_custom_message(msg)
 
                 await asyncio.sleep(POLLING_INTERVAL)
 

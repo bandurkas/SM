@@ -69,3 +69,23 @@ class StructureAgent:
             details.append("Bearish BOS/MSS — Слом структуры вниз (+1 балл)")
             
         return score, details
+
+    def get_nearest_swing(self, df, is_long):
+        """
+        Returns the price of the nearest significant swing point,
+        used as the basis for Stop-Loss calculation.
+        - For LONG: returns nearest Swing Low (price to place SL below)
+        - For SHORT: returns nearest Swing High (price to place SL above)
+        """
+        df_swings = self.identify_swings(df)
+
+        if is_long:
+            swing_lows = df_swings[df_swings['swing_low']]['low']
+            if len(swing_lows) > 0:
+                return swing_lows.iloc[-1]  # Most recent swing low
+        else:
+            swing_highs = df_swings[df_swings['swing_high']]['high']
+            if len(swing_highs) > 0:
+                return swing_highs.iloc[-1]  # Most recent swing high
+
+        return None
